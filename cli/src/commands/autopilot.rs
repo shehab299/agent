@@ -3672,6 +3672,7 @@ fn xml_escape(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
 
     fn temp_file_path(name: &str) -> PathBuf {
         let nanos = std::time::SystemTime::now()
@@ -4299,11 +4300,11 @@ api_key = "monitoring-key"
         let policy = resolve_server_tool_policy(None, None, false);
 
         assert_eq!(
-            policy.action_for("view"),
+            policy.action_for("view",&json!({})),
             stakpak_server::ToolApprovalAction::Approve
         );
         assert_eq!(
-            policy.action_for("run_command"),
+            policy.action_for("run_command",&json!({})),
             stakpak_server::ToolApprovalAction::Ask
         );
     }
@@ -4314,11 +4315,11 @@ api_key = "monitoring-key"
         let policy = resolve_server_tool_policy(Some(&allowed_tools), None, false);
 
         assert_eq!(
-            policy.action_for("view"),
+            policy.action_for("view", &json!({})),
             stakpak_server::ToolApprovalAction::Approve
         );
         assert_eq!(
-            policy.action_for("run_command"),
+            policy.action_for("run_command", &json!({})),
             stakpak_server::ToolApprovalAction::Ask
         );
     }
@@ -4328,11 +4329,11 @@ api_key = "monitoring-key"
         let policy = resolve_server_tool_policy(None, None, true);
 
         assert_eq!(
-            policy.action_for("run_command"),
+            policy.action_for("run_command", &json!({})),
             stakpak_server::ToolApprovalAction::Approve
         );
         assert_eq!(
-            policy.action_for("some_future_tool"),
+            policy.action_for("some_future_tool", &json!({})),
             stakpak_server::ToolApprovalAction::Approve
         );
     }
@@ -4344,7 +4345,7 @@ api_key = "monitoring-key"
         let policy = resolve_server_tool_policy(Some(&allowed_tools), Some(&auto_approve), false);
 
         assert_eq!(
-            policy.action_for("run_command"),
+            policy.action_for("run_command", &json!({})),
             stakpak_server::ToolApprovalAction::Approve
         );
     }
