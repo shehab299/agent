@@ -6156,8 +6156,6 @@ version = "0.3.66"
 dependencies = [
  "async-trait",
  "chrono",
- "globset",
- "regex",
  "serde",
  "serde_json",
  "shell-parser",
@@ -6378,7 +6376,6 @@ dependencies = [
  "console",
  "crossterm 0.29.0",
  "dirs",
- "globset",
  "ignore",
  "image",
  "log",
