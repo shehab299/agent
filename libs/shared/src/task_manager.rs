@@ -207,6 +207,9 @@ pub enum TaskMessage {
     GetAllTasks {
         response_tx: oneshot::Sender<Vec<TaskInfo>>,
     },
+    GetRunningTaskCount {
+        response_tx: oneshot::Sender<usize>,
+    },
     Shutdown {
         response_tx: oneshot::Sender<()>,
     },
@@ -332,6 +335,20 @@ impl TaskManager {
                     .collect();
                 tasks.sort_by(|a, b| b.start_time.cmp(&a.start_time));
                 let _ = response_tx.send(tasks);
+                false
+            }
+            TaskMessage::GetRunningTaskCount { response_tx } => {
+                let running_count = self
+                    .tasks
+                    .values()
+                    .filter(|entry| {
+                        matches!(
+                            entry.task.status,
+                            TaskStatus::Running | TaskStatus::Pending | TaskStatus::Paused
+                        )
+                    })
+                    .count();
+                let _ = response_tx.send(running_count);
                 false
             }
             TaskMessage::TaskUpdate { id, completion } => {
@@ -988,6 +1005,16 @@ impl TaskManagerHandle {
 
         self.tx
             .send(TaskMessage::GetAllTasks { response_tx })
+            .map_err(|_| TaskError::ManagerShutdown)?;
+
+        response_rx.await.map_err(|_| TaskError::ManagerShutdown)
+    }
+
+    pub async fn get_running_task_count(&self) -> Result<usize, TaskError> {
+        let (response_tx, response_rx) = oneshot::channel();
+
+        self.tx
+            .send(TaskMessage::GetRunningTaskCount { response_tx })
             .map_err(|_| TaskError::ManagerShutdown)?;
 
         response_rx.await.map_err(|_| TaskError::ManagerShutdown)

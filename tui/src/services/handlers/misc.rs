@@ -260,18 +260,8 @@ pub fn handle_attempt_quit(state: &mut AppState, input_tx: &tokio::sync::mpsc::S
         if let Some(handle) = state.task_manager_handle.clone() {
             let input_tx_clone = input_tx.clone();
             tokio::spawn(async move {
-                let count = match handle.get_all_tasks().await {
-                    Ok(tasks) => tasks
-                        .iter()
-                        .filter(|t| {
-                            matches!(
-                                t.status,
-                                stakpak_shared::task_manager::TaskStatus::Running
-                                    | stakpak_shared::task_manager::TaskStatus::Pending
-                                    | stakpak_shared::task_manager::TaskStatus::Paused
-                            )
-                        })
-                        .count(),
+                let count = match handle.get_running_task_count().await {
+                    Ok(count) => count,
                     Err(_) => 0,
                 };
                 let _ = input_tx_clone.try_send(InputEvent::RunningBackgroundTasksCount(count));
